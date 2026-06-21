@@ -29,7 +29,7 @@ class WorkspaceMemberRepository {
     }
 
     async updateById(member_id, update_data) {
-        return await WorkspaceMember.findByIdAndUpdate(member_id, update_data)
+        return await WorkspaceMember.findByIdAndUpdate(member_id, update_data, { new: true })
     }
 
     async deleteById(member_id) {

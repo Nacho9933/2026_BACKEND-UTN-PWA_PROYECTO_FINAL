@@ -47,6 +47,18 @@ workspaceRouter.get(
     memberWorkspaceController.getWorkspaceMembers
 );
 
+workspaceRouter.put(
+    '/:workspace_id/members/:member_id',
+    workspaceMiddleware([MEMBER_WORKSPACE_ROLES.OWNER, MEMBER_WORKSPACE_ROLES.ADMIN]),
+    memberWorkspaceController.updateMemberRole
+);
+
+workspaceRouter.delete(
+    '/:workspace_id/members/:member_id',
+    workspaceMiddleware([MEMBER_WORKSPACE_ROLES.OWNER, MEMBER_WORKSPACE_ROLES.ADMIN]),
+    memberWorkspaceController.removeMember
+);
+
 //Todo lo relacionado a canales: /api/workspace/:workspace_id/channels
 workspaceRouter.use('/:workspace_id/channels', channelRouter);
 

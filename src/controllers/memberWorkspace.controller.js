@@ -1,4 +1,5 @@
 import MEMBER_INVITATION_STATUS from "../constants/memberInvitationStatus.constant.js";
+import { MEMBER_WORKSPACE_ROLES } from "../constants/memberRoles.constant.js";
 import ServerError from "../helpers/serverError.helper.js";
 import userRepository from "../repositories/user.repository.js";
 import workspaceMemberRepository from "../repositories/workspaceMember.repository.js";
@@ -43,6 +44,64 @@ class MemberWorkspaceController {
             data: {
                 members
             }
+        });
+    }
+
+    async updateMemberRole(request, response) {
+        const { workspace_id, member_id } = request.params;
+        const { role } = request.body;
+
+        if (!role) {
+            throw new ServerError("El rol es obligatorio", 400);
+        }
+
+        //Solo se permite asignar admin o usuario (la propiedad del owner no se transfiere por aquí)
+        const valid_roles = [MEMBER_WORKSPACE_ROLES.ADMIN, MEMBER_WORKSPACE_ROLES.USER];
+        if (!valid_roles.includes(role)) {
+            throw new ServerError("Rol inválido", 400);
+        }
+
+        //Validamos que el miembro exista y pertenezca a este espacio de trabajo
+        const member = await workspaceMemberRepository.getById(member_id);
+        if (!member || member.fk_workspace_id.toString() !== workspace_id) {
+            throw new ServerError("Miembro no encontrado en este espacio de trabajo", 404);
+        }
+
+        if (member.rol === MEMBER_WORKSPACE_ROLES.OWNER) {
+            throw new ServerError("No se puede modificar el rol del dueño del espacio de trabajo", 403);
+        }
+
+        const updated_member = await workspaceMemberRepository.updateById(member_id, { rol: role });
+
+        return response.status(200).json({
+            ok: true,
+            status: 200,
+            message: "Rol del miembro actualizado con éxito",
+            data: {
+                member: updated_member
+            }
+        });
+    }
+
+    async removeMember(request, response) {
+        const { workspace_id, member_id } = request.params;
+
+        //Validamos que el miembro exista y pertenezca a este espacio de trabajo
+        const member = await workspaceMemberRepository.getById(member_id);
+        if (!member || member.fk_workspace_id.toString() !== workspace_id) {
+            throw new ServerError("Miembro no encontrado en este espacio de trabajo", 404);
+        }
+
+        if (member.rol === MEMBER_WORKSPACE_ROLES.OWNER) {
+            throw new ServerError("No se puede expulsar al dueño del espacio de trabajo", 403);
+        }
+
+        await workspaceMemberRepository.deleteById(member_id);
+
+        return response.status(200).json({
+            ok: true,
+            status: 200,
+            message: "Miembro expulsado con éxito"
         });
     }
 
