@@ -321,9 +321,10 @@ Maneja la creación, lectura, actualización y eliminación de los espacios de t
   ```json
   {
     "invited_email": "amigo@ejemplo.com",
-    "role": "member" // u otro rol definido en el sistema
+    "role": "usuario"
   }
   ```
+  *(Roles válidos: `admin` o `usuario`. El rol `dueño` se asigna automáticamente al creador del espacio.)*
 * **Validaciones**:
   * El usuario invitado debe existir en el sistema.
   * El usuario no debe poseer una membresía activa (`accepted`), ni una invitación pendiente válida (`pending`). Si expiró la invitación anterior, se descarta y se genera una nueva.
@@ -356,6 +357,316 @@ Maneja la creación, lectura, actualización y eliminación de los espacios de t
   ```
 * **Errores Comunes**:
   * `400 Bad Request`: Token inválido, expirado (validez de 30 días), invitación ya procesada anteriormente o decisión inválida.
+
+---
+
+#### 👥 **Listar Miembros del Espacio de Trabajo**
+* **Ruta**: `GET /api/workspace/:workspace_id/members`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware([])` — cualquier miembro del espacio)
+* **Headers**: `Authorization: Bearer <token>`
+* **Parámetros URL**:
+  * `workspace_id`: ID del espacio de trabajo.
+* **Respuesta Exitosa (200 OK)**:
+  *(Retorna solo las membresías aceptadas, con la info del usuario expandida vía populate)*
+  ```json
+  {
+    "ok": true,
+    "status": 200,
+    "message": "Miembros obtenidos con éxito",
+    "data": {
+      "members": [
+        {
+          "member_id": "6a0f8abf...",
+          "member_rol": "dueño",
+          "member_fecha_creacion": "2026-05-21T22:44:15.603Z",
+          "user_id": "6a0f8abf...",
+          "user_nombre": "Nombre Usuario",
+          "user_email": "correo@ejemplo.com"
+        }
+      ]
+    }
+  }
+  ```
+
+---
+
+#### 🔁 **Cambiar Rol de un Miembro**
+* **Ruta**: `PUT /api/workspace/:workspace_id/members/:member_id`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware(['dueño', 'admin'])`)
+* **Headers**: `Authorization: Bearer <token>`
+* **Parámetros URL**:
+  * `workspace_id`: ID del espacio de trabajo.
+  * `member_id`: ID de la membresía a modificar.
+* **Cuerpo de la Petición (JSON)**:
+  ```json
+  {
+    "role": "admin"
+  }
+  ```
+* **Validaciones**:
+  * El rol debe ser `admin` o `usuario` (no se puede asignar `dueño`: la propiedad no se transfiere por este endpoint).
+  * El miembro debe existir y pertenecer al espacio de trabajo indicado.
+  * No se puede modificar el rol del `dueño` del espacio.
+* **Respuesta Exitosa (200 OK)**:
+  ```json
+  {
+    "ok": true,
+    "status": 200,
+    "message": "Rol del miembro actualizado con éxito",
+    "data": {
+      "member": {
+        "_id": "6a0f8abf...",
+        "rol": "admin"
+      }
+    }
+  }
+  ```
+* **Errores Comunes**:
+  * `400 Bad Request`: Rol inválido o faltante.
+  * `403 Forbidden`: Intento de modificar al dueño, o sin rol suficiente.
+  * `404 Not Found`: Miembro no encontrado en este espacio de trabajo.
+
+---
+
+#### 🚪 **Expulsar a un Miembro**
+* **Ruta**: `DELETE /api/workspace/:workspace_id/members/:member_id`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware(['dueño', 'admin'])`)
+* **Headers**: `Authorization: Bearer <token>`
+* **Parámetros URL**:
+  * `workspace_id`: ID del espacio de trabajo.
+  * `member_id`: ID de la membresía a eliminar.
+* **Validaciones**:
+  * El miembro debe existir y pertenecer al espacio de trabajo indicado.
+  * No se puede expulsar al `dueño` del espacio.
+* **Respuesta Exitosa (200 OK)**:
+  ```json
+  {
+    "ok": true,
+    "status": 200,
+    "message": "Miembro expulsado con éxito"
+  }
+  ```
+* **Errores Comunes**:
+  * `403 Forbidden`: Intento de expulsar al dueño, o sin rol suficiente.
+  * `404 Not Found`: Miembro no encontrado en este espacio de trabajo.
+
+---
+
+### 💬 3. Canales (`/api/workspace/:workspace_id/channels`)
+
+Maneja los canales de comunicación dentro de un espacio de trabajo. Cada canal referencia (`ref`) al espacio de trabajo al que pertenece.
+
+---
+
+#### ➕ **Crear Canal**
+* **Ruta**: `POST /api/workspace/:workspace_id/channels`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware([])` — cualquier miembro del espacio)
+* **Headers**: `Authorization: Bearer <token>`
+* **Cuerpo de la Petición (JSON)**:
+  ```json
+  {
+    "nombre": "general",
+    "descripcion": "Canal de anuncios generales"
+  }
+  ```
+* **Validaciones**:
+  * `nombre`: Obligatorio, no puede estar vacío.
+* **Respuesta Exitosa (201 Created)**:
+  ```json
+  {
+    "ok": true,
+    "status": 201,
+    "message": "Canal creado con éxito",
+    "data": {
+      "channel": {
+        "_id": "6a0f8abf...",
+        "nombre": "general",
+        "descripcion": "Canal de anuncios generales",
+        "fk_workspace_id": "6a0f8abf...",
+        "estado": true,
+        "fecha_creacion": "2026-06-21T00:00:00.000Z"
+      }
+    }
+  }
+  ```
+
+---
+
+#### 📋 **Listar Canales del Espacio de Trabajo**
+* **Ruta**: `GET /api/workspace/:workspace_id/channels`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware([])` — cualquier miembro del espacio)
+* **Headers**: `Authorization: Bearer <token>`
+* **Respuesta Exitosa (200 OK)**:
+  *(Retorna solo los canales activos del espacio)*
+  ```json
+  {
+    "ok": true,
+    "status": 200,
+    "message": "Canales obtenidos con éxito",
+    "data": {
+      "channels": [
+        {
+          "_id": "6a0f8abf...",
+          "nombre": "general",
+          "descripcion": "Canal de anuncios generales",
+          "fk_workspace_id": "6a0f8abf...",
+          "estado": true
+        }
+      ]
+    }
+  }
+  ```
+
+---
+
+#### ✏️ **Actualizar Canal**
+* **Ruta**: `PUT /api/workspace/:workspace_id/channels/:channel_id`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware(['dueño', 'admin'])`)
+* **Headers**: `Authorization: Bearer <token>`
+* **Cuerpo de la Petición (JSON)** (Envía al menos uno):
+  ```json
+  {
+    "nombre": "general-v2",
+    "descripcion": "Nueva descripción"
+  }
+  ```
+* **Validaciones**:
+  * El canal debe existir y pertenecer al espacio de trabajo indicado.
+  * `nombre`: Si se envía, debe tener al menos 2 caracteres.
+* **Respuesta Exitosa (200 OK)**: Retorna el canal actualizado.
+* **Errores Comunes**:
+  * `404 Not Found`: Canal no encontrado en este espacio de trabajo.
+
+---
+
+#### 🗑️ **Eliminar Canal (Soft Delete)**
+* **Ruta**: `DELETE /api/workspace/:workspace_id/channels/:channel_id`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware(['dueño', 'admin'])`)
+* **Headers**: `Authorization: Bearer <token>`
+* **Validaciones**:
+  * El canal debe existir y pertenecer al espacio de trabajo indicado.
+* **Respuesta Exitosa (200 OK)**: Retorna el canal con `estado: false`.
+
+---
+
+### 📨 4. Mensajes (`/api/workspace/:workspace_id/channels/:channel_id/messages`)
+
+Maneja los mensajes dentro de un canal. Cada mensaje referencia (`ref`) al canal y al usuario autor.
+
+---
+
+#### ➕ **Crear Mensaje**
+* **Ruta**: `POST /api/workspace/:workspace_id/channels/:channel_id/messages`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware([])` — cualquier miembro del espacio)
+* **Headers**: `Authorization: Bearer <token>`
+* **Cuerpo de la Petición (JSON)**:
+  ```json
+  {
+    "contenido": "¡Hola equipo!"
+  }
+  ```
+* **Validaciones**:
+  * `contenido`: Obligatorio, no vacío, máximo 5000 caracteres.
+* **Respuesta Exitosa (201 Created)**:
+  ```json
+  {
+    "ok": true,
+    "status": 201,
+    "message": "Mensaje creado con éxito",
+    "data": {
+      "message": {
+        "_id": "6a0f8abf...",
+        "contenido": "¡Hola equipo!",
+        "fk_channel_id": "6a0f8abf...",
+        "fk_user_id": "6a0f8abf...",
+        "estado": true,
+        "fecha_creacion": "2026-06-21T00:00:00.000Z"
+      }
+    }
+  }
+  ```
+
+---
+
+#### 📋 **Listar Mensajes del Canal (con Paginación)**
+* **Ruta**: `GET /api/workspace/:workspace_id/channels/:channel_id/messages`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware([])` — cualquier miembro del espacio)
+* **Headers**: `Authorization: Bearer <token>`
+* **Parámetros de Consulta (Query Params)**:
+  * `page` (opcional, default `1`): Número de página.
+  * `limit` (opcional, default `20`, máximo `100`): Cantidad de mensajes por página.
+* **Respuesta Exitosa (200 OK)**:
+  *(Mensajes en orden cronológico, con el autor expandido vía populate, e info de paginación)*
+  ```json
+  {
+    "ok": true,
+    "status": 200,
+    "message": "Mensajes obtenidos con éxito",
+    "data": {
+      "messages": [
+        {
+          "_id": "6a0f8abf...",
+          "contenido": "¡Hola equipo!",
+          "fk_channel_id": "6a0f8abf...",
+          "fk_user_id": {
+            "_id": "6a0f8abf...",
+            "nombre": "Nombre Usuario",
+            "email": "correo@ejemplo.com"
+          },
+          "fecha_creacion": "2026-06-21T00:00:00.000Z"
+        }
+      ],
+      "pagination": {
+        "page": 1,
+        "limit": 20,
+        "total": 1,
+        "pages": 1
+      }
+    }
+  }
+  ```
+
+---
+
+#### ✏️ **Editar Mensaje**
+* **Ruta**: `PUT /api/workspace/:workspace_id/channels/:channel_id/messages/:message_id`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware([])`)
+* **Headers**: `Authorization: Bearer <token>`
+* **Cuerpo de la Petición (JSON)**:
+  ```json
+  {
+    "contenido": "Mensaje editado"
+  }
+  ```
+* **Validaciones**:
+  * `contenido`: Obligatorio, no vacío, máximo 5000 caracteres.
+  * El mensaje debe existir y pertenecer al canal indicado.
+  * Solo el **autor** del mensaje o un **admin/dueño** del espacio puede editarlo.
+* **Respuesta Exitosa (200 OK)**: Retorna el mensaje actualizado.
+* **Errores Comunes**:
+  * `403 Forbidden`: No es el autor ni admin, o el mensaje no pertenece al canal.
+  * `404 Not Found`: Mensaje no encontrado.
+
+---
+
+#### 🗑️ **Eliminar Mensaje (Soft Delete)**
+* **Ruta**: `DELETE /api/workspace/:workspace_id/channels/:channel_id/messages/:message_id`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware([])`)
+* **Headers**: `Authorization: Bearer <token>`
+* **Validaciones**:
+  * El mensaje debe existir y pertenecer al canal indicado.
+  * Solo el **autor** del mensaje o un **admin/dueño** del espacio puede eliminarlo.
+* **Respuesta Exitosa (200 OK)**:
+  ```json
+  {
+    "ok": true,
+    "status": 200,
+    "message": "Mensaje eliminado con éxito",
+    "data": {
+      "message": { "_id": "6a0f8abf...", "estado": false }
+    }
+  }
+  ```
 
 ---
 
