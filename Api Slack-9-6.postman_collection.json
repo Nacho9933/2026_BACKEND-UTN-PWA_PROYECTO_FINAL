@@ -1,0 +1,497 @@
+{
+  "info": {
+    "_postman_id": "184304a7-bbd1-454c-ac1f-646491cca02f",
+    "name": "Api Slack",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "22101868",
+    "_collection_link": "https://go.postman.co/collection/22101868-184304a7-bbd1-454c-ac1f-646491cca02f?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "/api/workspace",
+      "item": [
+        {
+          "name": "/:workspace_id",
+          "item": [
+            {
+              "name": "/channels",
+              "item": [
+                {
+                  "name": "Obtener canal",
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{api_slack_auth_token}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ]
+            },
+            {
+              "name": "/members",
+              "item": [
+                {
+                  "name": "Invitar usuario",
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{api_slack_auth_token}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "",
+                        "value": "",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\r\n    \"invited_email\": \"mati.a.gimenez2002@gmail.com\",\r\n    \"role\": \"usuario\"\r\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{API_SLACK_URL}}/api/workspace/:workspace_id/members",
+                      "host": [
+                        "{{API_SLACK_URL}}"
+                      ],
+                      "path": [
+                        "api",
+                        "workspace",
+                        ":workspace_id",
+                        "members"
+                      ],
+                      "variable": [
+                        {
+                          "key": "workspace_id",
+                          "value": "6a0f8abf40529437fb3a5435"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "Miembro decide invitacion",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{api_slack_auth_token}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "",
+                        "value": "",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\r\n    \"invited_email\": \"mati.a.gimenez2002@gmail.com\",\r\n    \"role\": \"usuario\"\r\n}"
+                    },
+                    "url": {
+                      "raw": "{{API_SLACK_URL}}/api/workspace/:workspace_id/members/:decision?invitation_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZW1iZXJfaWQiOiI2YTIyMTA3MTA4ZDIxMGM0YzM3MzgzZmQiLCJpYXQiOjE3ODA2MTczMjksImV4cCI6MTc4MzIwOTMyOX0.FBdxD3k14Gni5MwJ963ax2tTTeWaFrao-G-Kt_aiAKw",
+                      "host": [
+                        "{{API_SLACK_URL}}"
+                      ],
+                      "path": [
+                        "api",
+                        "workspace",
+                        ":workspace_id",
+                        "members",
+                        ":decision"
+                      ],
+                      "query": [
+                        {
+                          "key": "invitation_token",
+                          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZW1iZXJfaWQiOiI2YTIyMTA3MTA4ZDIxMGM0YzM3MzgzZmQiLCJpYXQiOjE3ODA2MTczMjksImV4cCI6MTc4MzIwOTMyOX0.FBdxD3k14Gni5MwJ963ax2tTTeWaFrao-G-Kt_aiAKw"
+                        }
+                      ],
+                      "variable": [
+                        {
+                          "key": "workspace_id",
+                          "value": "6a0f8abf40529437fb3a5435"
+                        },
+                        {
+                          "key": "decision",
+                          "value": "RECHAZADO"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            },
+            {
+              "name": "/members",
+              "item": []
+            }
+          ]
+        },
+        {
+          "name": "Crear espacio de trabajo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{api_slack_auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nombre\": \"Espacio de prueba 2\",\r\n    \"descripcion\": \"lorem ipsum\" \r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_SLACK_URL}}/api/workspace",
+              "host": [
+                "{{API_SLACK_URL}}"
+              ],
+              "path": [
+                "api",
+                "workspace"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener espacios de trabajo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{api_slack_auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_SLACK_URL}}/api/workspace",
+              "host": [
+                "{{API_SLACK_URL}}"
+              ],
+              "path": [
+                "api",
+                "workspace"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar espacio de trabajo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{api_slack_auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nombre\": \"Test actualizado\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_SLACK_URL}}/api/workspace/:workspace_id",
+              "host": [
+                "{{API_SLACK_URL}}"
+              ],
+              "path": [
+                "api",
+                "workspace",
+                ":workspace_id"
+              ],
+              "variable": [
+                {
+                  "key": "workspace_id",
+                  "value": "6a0f8abf40529437fb3a5435"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar por id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{api_slack_auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_SLACK_URL}}/api/workspace/:workspace_id",
+              "host": [
+                "{{API_SLACK_URL}}"
+              ],
+              "path": [
+                "api",
+                "workspace",
+                ":workspace_id"
+              ],
+              "variable": [
+                {
+                  "key": "workspace_id",
+                  "value": "6a0f8abf40529437fb3a5435"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "/api/auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"mati\",\r\n    \"email\": \"mati.a.gimenez2002@gmail.com\",\r\n    \"password\": \"Mati_123\" \r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_SLACK_URL}}/api/auth/register",
+              "host": [
+                "{{API_SLACK_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "// Guardar token en una variable de colección\r",
+                  "pm.collectionVariables.set('api_slack_auth_token', response.data.access_token);\r",
+                  "\r",
+                  "// Opcional: mostrar en consola\r",
+                  "console.log('Token guardado:', response.data.access_token);\r",
+                  "console.log(pm.collectionVariables.get('api_slack_auth_token'))"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"mati.dev.gimenez@gmail.com\",\r\n    \"password\": \"MMati_123\" \r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_SLACK_URL}}/api/auth/login",
+              "host": [
+                "{{API_SLACK_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticates a user with their email and password credentials.\n\n**Endpoint:** `POST {{API_SLACK_URL}}/api/auth/login`\n\n## Request Body\n\n| Field      | Type   | Description              |\n|------------|--------|--------------------------|\n| `email`    | string | The user's email address |\n| `password` | string | The user's password      |\n\n**Example:**\n```json\n{\n    \"email\": \"user@example.com\",\n    \"password\": \"yourPassword\"\n}\n```\n\n## Response\n\nOn success, returns a `200 OK` with a JSON body containing:\n\n- `ok` (boolean): `true` if authentication was successful.\n- `status` (number): HTTP status code.\n- `message` (string): Confirmation message.\n- `data.access_token` (string): JWT token to be used for authenticated requests.\n\n**Example response:**\n```json\n{\n    \"ok\": true,\n    \"status\": 200,\n    \"message\": \"Usuario autentificado exitosamente\",\n    \"data\": {\n        \"access_token\": \"<JWT_TOKEN>\"\n    }\n}\n```\n\n## Notes\n\n- Upon a successful login, the `access_token` is automatically saved to the collection variable `api_slack_auth_token` via the test script, making it available for subsequent authenticated requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Request reset password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"mati.dev.gimenez@gmail.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_SLACK_URL}}/api/auth/reset-password-request",
+              "host": [
+                "{{API_SLACK_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password-request"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm reset password",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1hdGkuZGV2LmdpbWVuZXpAZ21haWwuY29tIiwiaWQiOiI2YTA2NWYwYzYxMTg5Y2M2NWEyNDIxN2YiLCJpYXQiOjE3ODA0NDQ4NDEsImV4cCI6MTc4MDQ0NTc0MX0.rA5F8cUReSNHhr_yOVjEvqi8u6n49xv-cCZnWdpUptw",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"newPassword\": \"MMati_123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_SLACK_URL}}/api/auth/reset-password",
+              "host": [
+                "{{API_SLACK_URL}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "api_slack_auth_token",
+      "value": ""
+    }
+  ]
+}

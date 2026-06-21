@@ -42,6 +42,7 @@ RECOMENDACION:
     )
 */
 import cors from 'cors'
+import errorHandlerMiddleware from "./middlewares/error.middleware.js";
 
 const app = express();
 const PORT = ENVIRONMENT.PORT;
@@ -82,12 +83,44 @@ TAREA PARA 2/6
     Recomendacion personal:
         NO hagan nada de front, prueben todo con postman
         NO hagan los dos controladores, hagan 1, lo prueban y luego el siguiente
+
+
+
+
+TAREA 4/6:
+    Poder invitar gente a nuestro espacio de trabajo (si somos admin o owner)
+    Coinsideraciones:
+        - No puedo invitar gente que no existe
+        - Tengo que poder aceptar la invitacion ( mi membresia )
+            Que cambio deberiamos hacer en la DB?
+                - Crear una coleccion de InvitationWorkspace
+                - Modificar la coleccion de membresias para que soporte el estado de invitacion
+        - Que sucede si un usuario ya tiene una invitacion pendiente? y rechazada? y aceptada?
+            - Pendiente: Ya has invitado a este usuario (tener en cuenta que si se trabaja con fechas de expiracion debemos guardar tambien hasta que momento puede la invitacion estar pendiente, ya que si una invitacion pendiente expiro conviene eliminar la existente y recrear una nueva)
+            - Rechazada: Si fue rechazado ver si paso el tiempo limite de validez de rechazo (Depende de si queremos tener este tiempo limite). Si no paso este tiempo decir 'El usuario rechazo tu invitacion'
+            - Aceptada: El usuario ya es un miembro del espacio de trabajo
+        
+    authMiddleware, workspaceMiddleware(['owner', 'admin']) POST /api/workspace/:workspace_id/members
+        body {
+            invited_email: email del usuario invitado, 
+            role: Rol del usuario invitado
+        }
+    
+    - Validar que el usuario invitado exista
+    - Validamos que no tenga una membresia con este espacio de trabajo
+    - Creamos membresia con estado pendiente
+    - Creamos 1 tokens, con el {id_member} 
+    - Redactamos el mail con los botones de aceptar y rechazar que envien un GET hacia /api/workspace/:workspace_id/members/:decision?token
+
+
+
 */
 
 
 
-
-
+//Siempre debe estar al final
+//Esto es debido a que este middleware se ejecutara entre el controller y la response del servidor
+app.use(errorHandlerMiddleware)
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);

@@ -16,8 +16,7 @@ class WorkspaceRepository {
         return await Workspace.findById(workspace_id);
     }
     async softDeleteById(workspace_id){
-        await this.updateById(workspace_id, {estado: false});
-        //await Workspace.findByIdAndUpdate(workspace_id, {activo: false});
+        return await Workspace.findByIdAndUpdate(workspace_id, {estado: false}, { new: true });
     }
     async deleteById(workspace_id){
         return await Workspace.findByIdAndDelete(workspace_id, {estado: false});
