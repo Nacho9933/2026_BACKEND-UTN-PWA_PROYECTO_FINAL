@@ -2,7 +2,6 @@ import Channel from "../models/channel.model.js";
 
 class ChannelRepository {
     async getByWorkspaceId(workspace_id) {
-        //Lista de canales activos de un espacio de trabajo
         return await Channel.find({ fk_workspace_id: workspace_id, estado: true });
     }
 

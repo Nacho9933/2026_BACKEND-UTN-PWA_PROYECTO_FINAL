@@ -1,10 +1,8 @@
 import MEMBER_INVITATION_STATUS from "../constants/memberInvitationStatus.constant.js";
 import { MEMBER_WORKSPACE_ROLES } from "../constants/memberRoles.constant.js";
 import ServerError from "../helpers/serverError.helper.js";
-import userRepository from "../repositories/user.repository.js";
 import workspaceMemberRepository from "../repositories/workspaceMember.repository.js";
 import memberWorkspaceService from "../services/memberWorkspace.service.js";
-import jwt from 'jsonwebtoken'
 
 class MemberWorkspaceController {
     async inviteUser(request, response) {
@@ -55,13 +53,12 @@ class MemberWorkspaceController {
             throw new ServerError("El rol es obligatorio", 400);
         }
 
-        //Solo se permite asignar admin o usuario (la propiedad del owner no se transfiere por aquí)
+        //no se puede asignar dueño: la propiedad no se transfiere por acá
         const valid_roles = [MEMBER_WORKSPACE_ROLES.ADMIN, MEMBER_WORKSPACE_ROLES.USER];
         if (!valid_roles.includes(role)) {
             throw new ServerError("Rol inválido", 400);
         }
 
-        //Validamos que el miembro exista y pertenezca a este espacio de trabajo
         const member = await workspaceMemberRepository.getById(member_id);
         if (!member || member.fk_workspace_id.toString() !== workspace_id) {
             throw new ServerError("Miembro no encontrado en este espacio de trabajo", 404);
@@ -86,7 +83,6 @@ class MemberWorkspaceController {
     async removeMember(request, response) {
         const { workspace_id, member_id } = request.params;
 
-        //Validamos que el miembro exista y pertenezca a este espacio de trabajo
         const member = await workspaceMemberRepository.getById(member_id);
         if (!member || member.fk_workspace_id.toString() !== workspace_id) {
             throw new ServerError("Miembro no encontrado en este espacio de trabajo", 404);

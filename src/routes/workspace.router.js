@@ -9,18 +9,24 @@ import channelRouter from './channel.router.js';
 
 const workspaceRouter = express.Router();
 
-//Lo pongo arriba ya que no quiero que este alcanzado por el auth middleware
+//va antes del authMiddleware: se accede desde el link del mail, sin sesión iniciada
 workspaceRouter.get(
     '/:workspace_id/members/:decision',
     memberWorkspaceController.processInvitation
 );
 
-//Configuramos el authMiddleware a nivel de ruta
+//de acá en adelante todas las rutas requieren login
 workspaceRouter.use(authMiddleware);
 
 workspaceRouter.post('/', workspaceController.create);
 
 workspaceRouter.get('/', workspaceController.getAllByUser);
+
+workspaceRouter.get(
+    '/:workspace_id',
+    workspaceMiddleware([]),
+    workspaceController.getById
+);
 
 workspaceRouter.delete(
     '/:workspace_id', 
@@ -36,7 +42,6 @@ workspaceRouter.put(
 
 workspaceRouter.post(
     '/:workspace_id/members',
-    authMiddleware,
     workspaceMiddleware([MEMBER_WORKSPACE_ROLES.OWNER, MEMBER_WORKSPACE_ROLES.ADMIN]),
     memberWorkspaceController.inviteUser
 );
@@ -59,8 +64,6 @@ workspaceRouter.delete(
     memberWorkspaceController.removeMember
 );
 
-//Todo lo relacionado a canales: /api/workspace/:workspace_id/channels
 workspaceRouter.use('/:workspace_id/channels', channelRouter);
-
 
 export default workspaceRouter;

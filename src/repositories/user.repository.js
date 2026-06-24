@@ -18,18 +18,11 @@ class UserRepository {
     }
 
     async getByEmail (email){
-        //Buscar en la DB un usuario cuyo email sea el indicado
         const user_found = await User.findOne({email: email, activo: true})
         return user_found
     }
 
     async deleteById (user_id){
-        /* 
-        SOFT DELETE
-        */
-        //await User.findByIdAndUpdate(user_id, {activo: false})
-
-        /* HARD DELETE */
         await User.findByIdAndDelete(user_id)
     }
 

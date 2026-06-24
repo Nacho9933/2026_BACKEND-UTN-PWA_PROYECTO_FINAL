@@ -41,11 +41,28 @@ class ChannelController {
         });
     }
 
+    async getById(request, response) {
+        const { workspace_id, channel_id } = request.params;
+
+        const channel = await channelRepository.getById(channel_id);
+        if (!channel || !channel.estado || channel.fk_workspace_id.toString() !== workspace_id) {
+            throw new ServerError("Canal no encontrado en este espacio de trabajo", 404);
+        }
+
+        return response.status(200).json({
+            ok: true,
+            status: 200,
+            message: "Canal obtenido con éxito",
+            data: {
+                channel
+            }
+        });
+    }
+
     async updateById(request, response) {
         const { workspace_id, channel_id } = request.params;
         const { nombre, descripcion } = request.body;
 
-        //Validamos que el canal exista y pertenezca a este espacio de trabajo
         const channel = await channelRepository.getById(channel_id);
         if (!channel || !channel.estado || channel.fk_workspace_id.toString() !== workspace_id) {
             throw new ServerError("Canal no encontrado en este espacio de trabajo", 404);
@@ -81,7 +98,6 @@ class ChannelController {
     async deleteById(request, response) {
         const { workspace_id, channel_id } = request.params;
 
-        //Validamos que el canal exista y pertenezca a este espacio de trabajo
         const channel = await channelRepository.getById(channel_id);
         if (!channel || !channel.estado || channel.fk_workspace_id.toString() !== workspace_id) {
             throw new ServerError("Canal no encontrado en este espacio de trabajo", 404);

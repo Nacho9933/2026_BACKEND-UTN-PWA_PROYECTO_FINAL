@@ -9,7 +9,6 @@ class AuthController {
     async register(req, res) {
         const { name, email, password } = req.body;
 
-        // Validaciones
         if (!name || name.length <= 2) {
             throw new ServerError("Nombre debe ser mayor a 2 caracteres", 400)
         }
@@ -66,13 +65,6 @@ class AuthController {
     }
 
 
-    /**
-     * Controlador de express para la verificacion del mail
-     * param {Object} req - Objeto de request de express
-     * param {Object} res - Objeto de response de express
-     * 
-     * Esperamos recibir un query param con el token llamado verification_token
-     */
     async verifyEmail(req, res) {
         try {
             const { verification_token } = req.query;
@@ -167,7 +159,6 @@ class AuthController {
             throw new ServerError("Credenciales invalidas", 401)
         }
 
-        //Ese objeto es el que se guardara dentro del token de authorizacion
         const profile_info = {
             nombre: user_found.nombre,
             email: user_found.email,
@@ -175,11 +166,10 @@ class AuthController {
             fecha_creacion: user_found.fecha_creacion
         }
 
-        //Aca creamos el token
         const access_token = jwt.sign(
             profile_info,
             ENVIRONMENT.JWT_SECRET,
-            { expiresIn: '7d' } //El token de sesion expira en 7 dias
+            { expiresIn: '7d' }
         )
 
         return response.status(200).json({
@@ -195,7 +185,6 @@ class AuthController {
     }
 
 
-    /* --- 4. SOLICITUD RESTABLECER CONTRASEÑA --- */
     async resetPasswordRequest(request, response) {
 
         const { email } = request.body;
@@ -206,7 +195,7 @@ class AuthController {
 
         const user = await userRepository.getByEmail(email);
 
-        //Esto es una decision de negocio, no quiere decir que siempre deba ser asi, un 404 not found podria estar bien tambien o
+        //respondemos igual exista o no el usuario para no filtrar qué emails están registrados
         if (!user) {
             return response.status(200).json({
                 ok: true,
@@ -220,10 +209,10 @@ class AuthController {
         const token = jwt.sign(
             { email: user.email, id: user._id },
             secret_key,
-            { expiresIn: '15m' } //El token expiran en 15m
+            { expiresIn: '15m' }
         );
 
-        const reset_link = `${ENVIRONMENT.URL_FRONTEND}/reset-password?token=${token}`;
+        const reset_link = `${ENVIRONMENT.URL_FRONTEND}/reset-password?reset_password_token=${token}`;
 
         await mailer_transport.sendMail({
             from: 'Tu App <no-reply@tuapp.com>',
@@ -237,7 +226,6 @@ class AuthController {
                 `
         });
 
-        //RETURN EXITO REAL
         return response.status(200).json({
             ok: true,
             status: 200,

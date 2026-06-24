@@ -1,7 +1,4 @@
 import mongoose from 'mongoose'
-/* 
-Definir el esquema que tendra un usuario dentro de nuestra aplicacion.
-*/
 
 const userSchema = new mongoose.Schema(
     {

@@ -1,4 +1,3 @@
-/* Modelo de mongoose para los canales de un espacio de trabajo */
 import mongoose from "mongoose";
 import { WORKSPACE_COLLECTION_NAME } from "./workspace.model.js";
 

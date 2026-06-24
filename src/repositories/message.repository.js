@@ -2,8 +2,6 @@ import Message from "../models/message.model.js";
 
 class MessageRepository {
     async getByChannelId(channel_id, page = 1, limit = 20) {
-        //Lista de mensajes activos de un canal con paginación
-        //Ordenados por fecha descendente (más nuevos primero)
         const skip = (page - 1) * limit;
 
         const messages = await Message
@@ -13,11 +11,11 @@ class MessageRepository {
             .skip(skip)
             .limit(limit);
 
-        //Contar total para que el frontend sepa cuántas páginas hay
         const total = await Message.countDocuments({ fk_channel_id: channel_id, estado: true });
 
         return {
-            messages: messages.reverse(), //Invertimos para que queden en orden cronológico
+            //traemos los más nuevos con el sort desc y los damos vuelta para devolverlos en orden cronológico
+            messages: messages.reverse(),
             pagination: {
                 page,
                 limit,

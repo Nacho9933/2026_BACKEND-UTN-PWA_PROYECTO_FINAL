@@ -10,7 +10,6 @@ function authMiddleware(request, response, next) {
             throw new ServerError('No hay header de autorizacion', 401)
         }
 
-        //'bearer token_value' => split(' ') => ['bearer', 'token_value'][1]
         const authorization_token = authorization_header.split(' ')[1]
         if(!authorization_token){
             throw new ServerError('No hay token de autorizacion', 401)
@@ -21,11 +20,7 @@ function authMiddleware(request, response, next) {
             ENVIRONMENT.JWT_SECRET
         )
 
-
-        //Estamos guardando la informacion del usuario dentro de la request
         request.user = user_info
-
-        //Activamos el siguiente controlador
         return next()
     }
     catch (error) {

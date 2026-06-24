@@ -36,7 +36,6 @@ class MessageController {
         const { channel_id } = request.params;
         const { page = 1, limit = 20 } = request.query;
 
-        //Validar que page y limit sean números válidos
         const page_num = Math.max(1, parseInt(page) || 1);
         const limit_num = Math.min(100, Math.max(1, parseInt(limit) || 20));
 
@@ -74,7 +73,6 @@ class MessageController {
             throw new ServerError("El mensaje no pertenece a este canal", 403);
         }
 
-        //Solo el autor del mensaje o un admin puede editar
         const is_author = message.fk_user_id._id.toString() === user_id;
         const is_admin = [MEMBER_WORKSPACE_ROLES.OWNER, MEMBER_WORKSPACE_ROLES.ADMIN].includes(membership.rol);
 
@@ -109,7 +107,6 @@ class MessageController {
             throw new ServerError("El mensaje no pertenece a este canal", 403);
         }
 
-        //Solo el autor del mensaje o un admin puede eliminar
         const is_author = message.fk_user_id._id.toString() === user_id;
         const is_admin = [MEMBER_WORKSPACE_ROLES.OWNER, MEMBER_WORKSPACE_ROLES.ADMIN].includes(membership.rol);
 

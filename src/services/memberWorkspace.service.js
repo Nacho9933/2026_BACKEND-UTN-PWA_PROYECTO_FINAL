@@ -10,20 +10,8 @@ const WORKSPACE_CONFIG = {
     INVITATION_MEMBERSHIP_EXPIRATION_DAYS: 30
 }
 
-/* 
-Es la capa de nuestra API encargada de la logica de negocio
-La idea es separar las funcionalidades de nuestra aplicacion como servicios, de esta manera el controlador solo se ocupara de parte HTTP Request response y el servicio de la logica de negocio
-*/
 class MemberWorkspaceService {
 
-    /**
-     * 
-     * @param {String} user_invited_for_id El id del usuario que invita
-     * @param {String} user_invited_email El email del usuario invitado
-     * @param {String} workspace_id El id del espacio de trabajo a invitar
-     * @param {String} role El rol del usuario invitado
-     * 
-     * */
     async inviteUser(user_invited_for_id, user_invited_email, workspace_id, role) {
 
         const userToInvite = await userRepository.getByEmail(user_invited_email);
@@ -31,7 +19,6 @@ class MemberWorkspaceService {
             throw new ServerError("El usuario ingresado no existe en el sistema", 404);
         }
 
-        //Aca se decide que pasa si ya es miembro
         await this.verifyAlreadyMember(workspace_id, userToInvite._id)
 
 
@@ -99,7 +86,7 @@ class MemberWorkspaceService {
             }
 
             const ahora = new Date();
-            //Si el usuario ya esta invitado y es pendiente y su fecha de expiracion ya paso, eliminamos membresia y volvemos a crear. Sino lanzamos error
+            //si hay una invitación pendiente vigente avisamos; si ya expiró la borramos para poder reinvitar
             if (isInvitedAlreadyMember.estatus_invitacion === MEMBER_INVITATION_STATUS.PENDING) {
 
                 if (isInvitedAlreadyMember.fecha_expiracion_invitacion > ahora) {
@@ -131,7 +118,6 @@ class MemberWorkspaceService {
     }
 
     getMembershipExpirationDate() {
-        //Calculamos una fecha de expiracion para la invitacion del miembro
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + WORKSPACE_CONFIG.INVITATION_MEMBERSHIP_EXPIRATION_DAYS);
         return expirationDate

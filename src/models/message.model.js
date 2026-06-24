@@ -1,4 +1,3 @@
-/* Modelo de mongoose para los mensajes dentro de un canal */
 import mongoose from "mongoose";
 import { CHANNEL_COLLECTION_NAME } from "./channel.model.js";
 import { USER_COLLECTION_NAME } from "./user.model.js";

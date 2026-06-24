@@ -165,7 +165,7 @@ Maneja el registro, verificación de correo, inicio de sesión y restablecimient
     "message": "En caso de que tengas una cuenta asociada a este correo te enviaremos instrucciones para restablecer tu contraseña"
   }
   ```
-* **Efecto Secundario**: Si el usuario existe, se genera un token de un solo uso que expira en **15 minutos** y se envía al correo un enlace: `${URL_FRONTEND}/reset-password?token=${token}`.
+* **Efecto Secundario**: Si el usuario existe, se genera un token de un solo uso que expira en **15 minutos** y se envía al correo un enlace: `${URL_FRONTEND}/reset-password?reset_password_token=${token}`.
 
 ---
 
@@ -225,6 +225,40 @@ Maneja la creación, lectura, actualización y eliminación de los espacios de t
   }
   ```
 * **Efecto Secundario**: Crea automáticamente una membresía para el usuario creador con el rol de `owner` (Dueño) y estado de invitación `accepted` (Aceptado).
+
+---
+
+#### 🔍 **Obtener Espacio de Trabajo Puntual**
+* **Ruta**: `GET /api/workspace/:workspace_id`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware([])` — cualquier miembro del espacio)
+* **Headers**: `Authorization: Bearer <token>`
+* **Parámetros URL**:
+  * `workspace_id`: ID del espacio de trabajo.
+* **Respuesta Exitosa (200 OK)**:
+  *(Retorna el workspace junto con los datos de tu membresía, para que el front sepa tu rol y qué acciones habilitar)*
+  ```json
+  {
+    "ok": true,
+    "status": 200,
+    "message": "Espacio de trabajo obtenido",
+    "data": {
+      "workspace": {
+        "_id": "6a0f8abf...",
+        "nombre": "Mi Espacio de Trabajo",
+        "descripcion": "Descripción del espacio",
+        "estado": true,
+        "fecha_creacion": "2026-05-21T22:44:15.603Z"
+      },
+      "membership": {
+        "member_id": "6a0f8abf...",
+        "rol": "dueño"
+      }
+    }
+  }
+  ```
+* **Errores Comunes**:
+  * `404 Not Found`: Workspace no encontrado o inactivo.
+  * `403 Forbidden`: No eres miembro de este workspace.
 
 ---
 
@@ -489,6 +523,36 @@ Maneja los canales de comunicación dentro de un espacio de trabajo. Cada canal 
     }
   }
   ```
+
+---
+
+#### 🔍 **Obtener Canal Puntual**
+* **Ruta**: `GET /api/workspace/:workspace_id/channels/:channel_id`
+* **Autenticación**: Requerida (`authMiddleware` + `workspaceMiddleware([])` — cualquier miembro del espacio)
+* **Headers**: `Authorization: Bearer <token>`
+* **Parámetros URL**:
+  * `workspace_id`: ID del espacio de trabajo.
+  * `channel_id`: ID del canal.
+* **Respuesta Exitosa (200 OK)**:
+  ```json
+  {
+    "ok": true,
+    "status": 200,
+    "message": "Canal obtenido con éxito",
+    "data": {
+      "channel": {
+        "_id": "6a0f8abf...",
+        "nombre": "general",
+        "descripcion": "Canal de anuncios generales",
+        "fk_workspace_id": "6a0f8abf...",
+        "estado": true,
+        "fecha_creacion": "2026-06-21T00:00:00.000Z"
+      }
+    }
+  }
+  ```
+* **Errores Comunes**:
+  * `404 Not Found`: Canal no encontrado en este espacio de trabajo.
 
 ---
 

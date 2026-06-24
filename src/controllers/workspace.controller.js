@@ -9,26 +9,23 @@ class WorkspaceController {
     async create(request, response) {
 
         const { nombre, descripcion } = request.body;
-
-        //Para que esto funcione se debe ejecutar previamente el authMiddleware
         const user_id = request.user.id;
 
         if (!nombre || nombre.trim() === '') {
             throw new ServerError("El nombre del espacio de trabajo es obligatorio", 400);
         }
 
-        //crea el espacio de trabajo
         const newWorkspace = await workspaceRepository.create(
             nombre,
             descripcion || ''
         );
 
-        //creamos la membresia del dueño
+        //el creador queda como dueño con la invitación ya aceptada
         await workspaceMemberRepository.create(
             user_id,
             newWorkspace._id,
             MEMBER_WORKSPACE_ROLES.OWNER,
-            MEMBER_INVITATION_STATUS.ACCEPTED, //Aceptamos automaticamente debido a que es el mismo dueño, se autogenero
+            MEMBER_INVITATION_STATUS.ACCEPTED,
             null
         );
 
@@ -43,12 +40,33 @@ class WorkspaceController {
 
     }
 
+    async getById(request, response) {
+        const workspace_id = request.params.workspace_id
+
+        const workspace = await workspaceRepository.getById(workspace_id)
+        if (!workspace || !workspace.estado) {
+            throw new ServerError("Espacio de trabajo no encontrado", 404)
+        }
+
+        //devolvemos la membresía (la deja el workspaceMiddleware) para que el front sepa qué acciones habilitar
+        return response.status(200).json({
+            ok: true,
+            status: 200,
+            message: "Espacio de trabajo obtenido",
+            data: {
+                workspace,
+                membership: {
+                    member_id: request.membership._id,
+                    rol: request.membership.rol
+                }
+            }
+        })
+    }
+
     async getAllByUser(req, res) {
 
         const user_id = req.user.id;
 
-        //Quiero obtener la lista de membresias de un usuario
-        //Y cada membresia traera consigo la info del espacio de trabajo asociado
         const workspaces = await workspaceMemberRepository.getByUserId(user_id);
 
         return res.status(200).json({
