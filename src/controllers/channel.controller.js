@@ -6,10 +6,6 @@ class ChannelController {
         const { nombre, descripcion } = request.body;
         const { workspace_id } = request.params;
 
-        if (!nombre || nombre.trim() === '') {
-            throw new ServerError("El nombre del canal es obligatorio", 400);
-        }
-
         const new_channel = await channelRepository.create(
             nombre,
             descripcion || '',
@@ -70,16 +66,10 @@ class ChannelController {
 
         const update_data = {};
 
-        if (!nombre && !descripcion) {
-            throw new ServerError("Debes enviar al menos un campo para actualizar", 400);
-        }
-        if (nombre) {
-            if (nombre.length < 2) {
-                throw new ServerError("El nombre debe tener al menos 2 caracteres", 400);
-            }
+        if (nombre !== undefined) {
             update_data.nombre = nombre;
         }
-        if (descripcion) {
+        if (descripcion !== undefined) {
             update_data.descripcion = descripcion;
         }
 

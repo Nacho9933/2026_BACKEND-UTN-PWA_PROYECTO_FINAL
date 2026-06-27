@@ -8,14 +8,6 @@ class MessageController {
         const { workspace_id, channel_id } = request.params;
         const user_id = request.user.id;
 
-        if (!contenido || contenido.trim() === '') {
-            throw new ServerError("El contenido del mensaje es obligatorio", 400);
-        }
-
-        if (contenido.length > 5000) {
-            throw new ServerError("El mensaje no puede exceder 5000 caracteres", 400);
-        }
-
         const new_message = await messageRepository.create(
             contenido,
             channel_id,
@@ -54,14 +46,6 @@ class MessageController {
         const { contenido } = request.body;
         const user_id = request.user.id;
         const membership = request.membership;
-
-        if (!contenido || contenido.trim() === '') {
-            throw new ServerError("El contenido del mensaje es obligatorio", 400);
-        }
-
-        if (contenido.length > 5000) {
-            throw new ServerError("El mensaje no puede exceder 5000 caracteres", 400);
-        }
 
         const message = await messageRepository.getById(message_id);
 

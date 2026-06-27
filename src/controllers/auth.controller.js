@@ -9,18 +9,6 @@ class AuthController {
     async register(req, res) {
         const { name, email, password } = req.body;
 
-        if (!name || name.length <= 2) {
-            throw new ServerError("Nombre debe ser mayor a 2 caracteres", 400)
-        }
-
-        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-            throw new ServerError("Email inválido", 400)
-        }
-
-        if (!password || password.length < 6) {
-            throw new ServerError("Password debe tener al menos 6 caracteres", 400)
-        }
-
         const existingUser = await userRepository.getByEmail(email);
         if (existingUser) {
             throw new ServerError("El email ya está registrado", 400)
@@ -135,14 +123,6 @@ class AuthController {
 
         const { email, password } = request.body
 
-        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-            throw new ServerError("Email inválido", 400)
-        }
-
-        if (!password || password.length < 6) {
-            throw new ServerError("Contraseña invalida", 400)
-        }
-
         const user_found = await userRepository.getByEmail(email)
 
         if (!user_found) {
@@ -188,10 +168,6 @@ class AuthController {
     async resetPasswordRequest(request, response) {
 
         const { email } = request.body;
-
-        if (!email) {
-            throw new ServerError("El email es obligatorio", 400);
-        }
 
         const user = await userRepository.getByEmail(email);
 
@@ -259,10 +235,6 @@ class AuthController {
         const decoded = jwt.verify(reset_token, secret_key);
 
         const { newPassword } = request.body;
-
-        if (!newPassword || newPassword.length < 6) {
-            throw new ServerError("Contraseña invalida", 400);
-        }
 
         const new_password_hashed = await bcrypt.hash(newPassword, 10);
         await userRepository.updateById(user._id, { password: new_password_hashed });

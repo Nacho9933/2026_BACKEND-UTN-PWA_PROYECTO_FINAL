@@ -11,10 +11,6 @@ class WorkspaceController {
         const { nombre, descripcion } = request.body;
         const user_id = request.user.id;
 
-        if (!nombre || nombre.trim() === '') {
-            throw new ServerError("El nombre del espacio de trabajo es obligatorio", 400);
-        }
-
         const newWorkspace = await workspaceRepository.create(
             nombre,
             descripcion || ''
@@ -103,17 +99,11 @@ class WorkspaceController {
 
         const updated_info = {}
 
-        if (!nombre && !descripcion) {
-            throw new ServerError("Debes enviar al menos un campo para actualizar", 400)
-        }
-        if (nombre) {
-            if (nombre.length < 2) {
-                throw new ServerError("El nombre debe tener al menos 2 caracteres", 400)
-            }
+        if (nombre !== undefined) {
             updated_info.nombre = nombre
         }
 
-        if (descripcion) {
+        if (descripcion !== undefined) {
             updated_info.descripcion = descripcion
         }
         const updated_workspace = await workspaceRepository.updateById(workspace_id, updated_info)

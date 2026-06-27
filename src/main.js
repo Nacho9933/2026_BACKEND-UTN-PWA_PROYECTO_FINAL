@@ -5,6 +5,7 @@ import dns from 'dns';
 import cors from 'cors';
 import authRouter from "./routes/auth.router.js";
 import workspaceRouter from "./routes/workspace.router.js";
+import directMessageRouter from "./routes/directMessage.router.js";
 import errorHandlerMiddleware from "./middlewares/error.middleware.js";
 
 //Forzamos IPv4 primero para evitar ETIMEDOUT al resolver MongoDB Atlas por IPv6
@@ -29,6 +30,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRouter);
 app.use('/api/workspace', workspaceRouter);
+app.use('/api/direct-messages', directMessageRouter);
 
 //va al final: corre cuando un controller lanza una excepción
 app.use(errorHandlerMiddleware);

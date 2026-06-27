@@ -10,11 +10,6 @@ class MemberWorkspaceController {
             const { invited_email, role } = request.body;
             const { id: client_id } = request.user;
 
-            
-            if (!invited_email || !role) {
-                throw new ServerError("Faltan datos obligatorios (email y rol)", 400);
-            }
-
             await memberWorkspaceService.inviteUser(
                 client_id,
                 invited_email,
@@ -48,16 +43,6 @@ class MemberWorkspaceController {
     async updateMemberRole(request, response) {
         const { workspace_id, member_id } = request.params;
         const { role } = request.body;
-
-        if (!role) {
-            throw new ServerError("El rol es obligatorio", 400);
-        }
-
-        //no se puede asignar dueño: la propiedad no se transfiere por acá
-        const valid_roles = [MEMBER_WORKSPACE_ROLES.ADMIN, MEMBER_WORKSPACE_ROLES.USER];
-        if (!valid_roles.includes(role)) {
-            throw new ServerError("Rol inválido", 400);
-        }
 
         const member = await workspaceMemberRepository.getById(member_id);
         if (!member || member.fk_workspace_id.toString() !== workspace_id) {

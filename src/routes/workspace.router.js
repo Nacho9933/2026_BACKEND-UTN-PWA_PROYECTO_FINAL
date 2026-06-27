@@ -6,6 +6,9 @@ import workspaceMiddleware from '../middlewares/workspace.middleware.js';
 import { MEMBER_WORKSPACE_ROLES } from '../constants/memberRoles.constant.js';
 import memberWorkspaceController from '../controllers/memberWorkspace.controller.js';
 import channelRouter from './channel.router.js';
+import validate from '../middlewares/validate.middleware.js';
+import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas/workspace.schema.js';
+import { inviteMemberSchema, updateMemberRoleSchema } from '../schemas/member.schema.js';
 
 const workspaceRouter = express.Router();
 
@@ -18,7 +21,7 @@ workspaceRouter.get(
 //de acá en adelante todas las rutas requieren login
 workspaceRouter.use(authMiddleware);
 
-workspaceRouter.post('/', workspaceController.create);
+workspaceRouter.post('/', validate(createWorkspaceSchema), workspaceController.create);
 
 workspaceRouter.get('/', workspaceController.getAllByUser);
 
@@ -35,14 +38,16 @@ workspaceRouter.delete(
 )
 
 workspaceRouter.put(
-    '/:workspace_id', 
-    workspaceMiddleware([MEMBER_WORKSPACE_ROLES.ADMIN, MEMBER_WORKSPACE_ROLES.OWNER]), 
+    '/:workspace_id',
+    workspaceMiddleware([MEMBER_WORKSPACE_ROLES.ADMIN, MEMBER_WORKSPACE_ROLES.OWNER]),
+    validate(updateWorkspaceSchema),
     workspaceController.updateById
 )
 
 workspaceRouter.post(
     '/:workspace_id/members',
     workspaceMiddleware([MEMBER_WORKSPACE_ROLES.OWNER, MEMBER_WORKSPACE_ROLES.ADMIN]),
+    validate(inviteMemberSchema),
     memberWorkspaceController.inviteUser
 );
 
@@ -55,6 +60,7 @@ workspaceRouter.get(
 workspaceRouter.put(
     '/:workspace_id/members/:member_id',
     workspaceMiddleware([MEMBER_WORKSPACE_ROLES.OWNER, MEMBER_WORKSPACE_ROLES.ADMIN]),
+    validate(updateMemberRoleSchema),
     memberWorkspaceController.updateMemberRole
 );
 
