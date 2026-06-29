@@ -1,34 +1,21 @@
-import MEMBER_INVITATION_STATUS from "../constants/memberInvitationStatus.constant.js";
-import { MEMBER_WORKSPACE_ROLES } from "../constants/memberRoles.constant.js";
-import ServerError from "../helpers/serverError.helper.js";
-import workspaceMemberRepository from "../repositories/workspaceMember.repository.js";
 import memberWorkspaceService from "../services/memberWorkspace.service.js";
 
 class MemberWorkspaceController {
     async inviteUser(request, response) {
-            const { workspace_id } = request.params;
-            const { invited_email, role } = request.body;
-            const { id: client_id } = request.user;
+        const { workspace_id } = request.params;
+        const { invited_email, role } = request.body;
+        const { id: client_id } = request.user;
 
-            await memberWorkspaceService.inviteUser(
-                client_id,
-                invited_email,
-                workspace_id,
-                role
-            )
+        await memberWorkspaceService.inviteUser(client_id, invited_email, workspace_id, role);
 
-            return response.status(200).json({ 
-                ok: true, 
-                message: "Invitación enviada con éxito" 
-            });
-
-       
+        return response.status(200).json({
+            ok: true,
+            message: "Invitación enviada con éxito"
+        });
     }
 
     async getWorkspaceMembers(request, response) {
-        const { workspace_id } = request.params;
-
-        const members = await workspaceMemberRepository.getByWorkspaceId(workspace_id);
+        const members = await memberWorkspaceService.getWorkspaceMembers(request.params.workspace_id);
 
         return response.status(200).json({
             ok: true,
@@ -44,16 +31,7 @@ class MemberWorkspaceController {
         const { workspace_id, member_id } = request.params;
         const { role } = request.body;
 
-        const member = await workspaceMemberRepository.getById(member_id);
-        if (!member || member.fk_workspace_id.toString() !== workspace_id) {
-            throw new ServerError("Miembro no encontrado en este espacio de trabajo", 404);
-        }
-
-        if (member.rol === MEMBER_WORKSPACE_ROLES.OWNER) {
-            throw new ServerError("No se puede modificar el rol del dueño del espacio de trabajo", 403);
-        }
-
-        const updated_member = await workspaceMemberRepository.updateById(member_id, { rol: role });
+        const updated_member = await memberWorkspaceService.updateMemberRole(workspace_id, member_id, role);
 
         return response.status(200).json({
             ok: true,
@@ -68,16 +46,7 @@ class MemberWorkspaceController {
     async removeMember(request, response) {
         const { workspace_id, member_id } = request.params;
 
-        const member = await workspaceMemberRepository.getById(member_id);
-        if (!member || member.fk_workspace_id.toString() !== workspace_id) {
-            throw new ServerError("Miembro no encontrado en este espacio de trabajo", 404);
-        }
-
-        if (member.rol === MEMBER_WORKSPACE_ROLES.OWNER) {
-            throw new ServerError("No se puede expulsar al dueño del espacio de trabajo", 403);
-        }
-
-        await workspaceMemberRepository.deleteById(member_id);
+        await memberWorkspaceService.removeMember(workspace_id, member_id);
 
         return response.status(200).json({
             ok: true,
@@ -86,26 +55,19 @@ class MemberWorkspaceController {
         });
     }
 
-     async processInvitation(request, response) {
-       
-            const { decision } = request.params;
-            const { invitation_token } = request.query;
+    async processInvitation(request, response) {
+        const { decision } = request.params;
+        const { invitation_token } = request.query;
 
-            if (!invitation_token) throw new ServerError("Falta token de invitacion", 400);
-            if (decision !== MEMBER_INVITATION_STATUS.ACCEPTED && decision !== MEMBER_INVITATION_STATUS.REJECTED){
-                throw new ServerError("Decisión no válida", 400);
-            }
-            await memberWorkspaceService.memberDesicion(invitation_token, decision)
-            
-            response.json({
-                ok: true,
-                status: 200,
-                message: `Decision de ${decision} tomada con exito!`
-            })
+        await memberWorkspaceService.memberDesicion(invitation_token, decision);
 
-        
+        return response.status(200).json({
+            ok: true,
+            status: 200,
+            message: `Decision de ${decision} tomada con exito!`
+        });
     }
 }
 
-const memberWorkspaceController = new MemberWorkspaceController()
-export default memberWorkspaceController
+const memberWorkspaceController = new MemberWorkspaceController();
+export default memberWorkspaceController;

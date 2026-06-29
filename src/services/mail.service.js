@@ -4,6 +4,32 @@ import ServerError from "../helpers/serverError.helper.js";
 
 
 class MailService {
+    async sendVerificationEmail (email, verification_token){
+        await mailer_transport.sendMail({
+            to: email,
+            from: ENVIRONMENT.GMAIL_USERNAME,
+            subject: "Verifica tu mail",
+            html: `
+                    <h1>Bienvenido a SLACK</h1>
+                    <a href='${ENVIRONMENT.URL_BACKEND}/api/auth/verify-email?verification_token=${verification_token}'>Click aqui</a> para verificar tu cuenta
+                `
+        });
+    }
+
+    async sendResetPasswordEmail (email, reset_link){
+        await mailer_transport.sendMail({
+            from: 'Tu App <no-reply@tuapp.com>',
+            to: email,
+            subject: 'Restablece tu contraseña',
+            html: `
+                    <h1>Restablecimiento de Contraseña</h1>
+                    <p>Has solicitado restablecer tu contraseña. Haz clic en el enlace de abajo para continuar:</p>
+                    <a href="${reset_link}">Restablecer mi contraseña</a>
+                    <p>Este enlace expirará en 15 minutos. Si tú no solicitaste esto, puedes ignorar este correo sin problemas.</p>
+                `
+        });
+    }
+
     async sendInvitationMemberEmail (invited_email, accept_url, reject_url, role){
         try {
             await mailer_transport.sendMail({

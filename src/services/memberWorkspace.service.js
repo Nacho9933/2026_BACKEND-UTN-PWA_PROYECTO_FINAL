@@ -1,5 +1,6 @@
 import ENVIRONMENT from "../config/environment.config.js";
 import MEMBER_INVITATION_STATUS from "../constants/memberInvitationStatus.constant.js";
+import { MEMBER_WORKSPACE_ROLES } from "../constants/memberRoles.constant.js";
 import ServerError from "../helpers/serverError.helper.js";
 import userRepository from "../repositories/user.repository.js";
 import workspaceMemberRepository from "../repositories/workspaceMember.repository.js";
@@ -46,7 +47,46 @@ class MemberWorkspaceService {
         await mailService.sendInvitationMemberEmail(userToInvite.email, accept_url, reject_url, role)
     }
 
+    async getWorkspaceMembers(workspace_id) {
+        return await workspaceMemberRepository.getByWorkspaceId(workspace_id);
+    }
+
+    async updateMemberRole(workspace_id, member_id, role) {
+        const member = await this.getMemberInWorkspace(workspace_id, member_id);
+
+        if (member.rol === MEMBER_WORKSPACE_ROLES.OWNER) {
+            throw new ServerError("No se puede modificar el rol del dueño del espacio de trabajo", 403);
+        }
+
+        return await workspaceMemberRepository.updateById(member_id, { rol: role });
+    }
+
+    async removeMember(workspace_id, member_id) {
+        const member = await this.getMemberInWorkspace(workspace_id, member_id);
+
+        if (member.rol === MEMBER_WORKSPACE_ROLES.OWNER) {
+            throw new ServerError("No se puede expulsar al dueño del espacio de trabajo", 403);
+        }
+
+        await workspaceMemberRepository.deleteById(member_id);
+    }
+
+    async getMemberInWorkspace(workspace_id, member_id) {
+        const member = await workspaceMemberRepository.getById(member_id);
+        if (!member || member.fk_workspace_id.toString() !== workspace_id) {
+            throw new ServerError("Miembro no encontrado en este espacio de trabajo", 404);
+        }
+        return member;
+    }
+
     async memberDesicion(invitation_token, decision) {
+        if (!invitation_token) {
+            throw new ServerError("Falta token de invitacion", 400);
+        }
+        if (decision !== MEMBER_INVITATION_STATUS.ACCEPTED && decision !== MEMBER_INVITATION_STATUS.REJECTED) {
+            throw new ServerError("Decisión no válida", 400);
+        }
+
         const decoded = jwt.verify(invitation_token, ENVIRONMENT.JWT_SECRET);
 
         const member_created = await workspaceMemberRepository.getById(decoded.member_id);

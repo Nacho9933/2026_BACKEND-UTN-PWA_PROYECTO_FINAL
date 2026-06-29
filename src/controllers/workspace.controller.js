@@ -1,29 +1,11 @@
-import MEMBER_INVITATION_STATUS from "../constants/memberInvitationStatus.constant.js";
-import { MEMBER_WORKSPACE_ROLES } from "../constants/memberRoles.constant.js";
-import ServerError from "../helpers/serverError.helper.js";
-import workspaceRepository from "../repositories/workspace.repository.js";
-import workspaceMemberRepository from "../repositories/workspaceMember.repository.js";
-
+import workspaceService from "../services/workspace.service.js";
 
 class WorkspaceController {
     async create(request, response) {
-
         const { nombre, descripcion } = request.body;
         const user_id = request.user.id;
 
-        const newWorkspace = await workspaceRepository.create(
-            nombre,
-            descripcion || ''
-        );
-
-        //el creador queda como dueño con la invitación ya aceptada
-        await workspaceMemberRepository.create(
-            user_id,
-            newWorkspace._id,
-            MEMBER_WORKSPACE_ROLES.OWNER,
-            MEMBER_INVITATION_STATUS.ACCEPTED,
-            null
-        );
+        const newWorkspace = await workspaceService.create(user_id, nombre, descripcion);
 
         return response.status(201).json({
             ok: true,
@@ -32,19 +14,12 @@ class WorkspaceController {
                 workspace: newWorkspace
             }
         });
-
-
     }
 
     async getById(request, response) {
-        const workspace_id = request.params.workspace_id
+        const workspace = await workspaceService.getById(request.params.workspace_id);
 
-        const workspace = await workspaceRepository.getById(workspace_id)
-        if (!workspace || !workspace.estado) {
-            throw new ServerError("Espacio de trabajo no encontrado", 404)
-        }
-
-        //devolvemos la membresía (la deja el workspaceMiddleware) para que el front sepa qué acciones habilitar
+        //la membresía la deja el workspaceMiddleware en la request; sirve para que el front sepa qué acciones habilitar
         return response.status(200).json({
             ok: true,
             status: 200,
@@ -56,14 +31,11 @@ class WorkspaceController {
                     rol: request.membership.rol
                 }
             }
-        })
+        });
     }
 
     async getAllByUser(req, res) {
-
-        const user_id = req.user.id;
-
-        const workspaces = await workspaceMemberRepository.getByUserId(user_id);
+        const workspaces = await workspaceService.getAllByUser(req.user.id);
 
         return res.status(200).json({
             ok: true,
@@ -72,14 +44,10 @@ class WorkspaceController {
                 workspaces
             }
         });
-
     }
 
     async deleteById(request, response) {
-
-        const workspace_id = request.params.workspace_id
-
-        const deleted_workspace = await workspaceRepository.softDeleteById(workspace_id)
+        const deleted_workspace = await workspaceService.deleteById(request.params.workspace_id);
 
         return response.status(200).json({
             message: "Espacio de trabajo eliminado exitosamente",
@@ -89,40 +57,20 @@ class WorkspaceController {
                 workspace: deleted_workspace
             }
         });
-
-
     }
+
     async updateById(request, response) {
+        const updated_workspace = await workspaceService.updateById(request.params.workspace_id, request.body);
 
-        const workspace_id = request.params.workspace_id
-        const { nombre, descripcion } = request.body
-
-        const updated_info = {}
-
-        if (nombre !== undefined) {
-            updated_info.nombre = nombre
-        }
-
-        if (descripcion !== undefined) {
-            updated_info.descripcion = descripcion
-        }
-        const updated_workspace = await workspaceRepository.updateById(workspace_id, updated_info)
-
-        const workspace_after_update = await workspaceRepository.getById(workspace_id)
         return response.status(200).json({
             message: "Espacio de trabajo actualizado exitosamente",
             ok: true,
             status: 200,
             data: {
-                workspace: workspace_after_update
+                workspace: updated_workspace
             }
         });
-
-
-
-
     }
-
 }
 
 const workspaceController = new WorkspaceController();

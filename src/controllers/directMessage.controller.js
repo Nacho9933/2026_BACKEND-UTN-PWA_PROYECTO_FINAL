@@ -1,13 +1,8 @@
-import mongoose from "mongoose";
-import ServerError from "../helpers/serverError.helper.js";
-import directMessageRepository from "../repositories/directMessage.repository.js";
-import userRepository from "../repositories/user.repository.js";
+import directMessageService from "../services/directMessage.service.js";
 
 class DirectMessageController {
     async getConversations(request, response) {
-        const user_id = request.user.id;
-
-        const conversations = await directMessageRepository.getConversationsForUser(user_id);
+        const conversations = await directMessageService.getConversations(request.user.id);
 
         return response.status(200).json({
             ok: true,
@@ -20,27 +15,14 @@ class DirectMessageController {
     }
 
     async getConversation(request, response) {
-        const user_id = request.user.id;
         const { user_id: other_user_id } = request.params;
-        const { page = 1, limit = 20 } = request.query;
+        const { page, limit } = request.query;
 
-        if (!mongoose.Types.ObjectId.isValid(other_user_id)) {
-            throw new ServerError("Usuario no encontrado", 404);
-        }
-
-        const other_user = await userRepository.getById(other_user_id);
-        if (!other_user || !other_user.activo) {
-            throw new ServerError("Usuario no encontrado", 404);
-        }
-
-        const page_num = Math.max(1, parseInt(page) || 1);
-        const limit_num = Math.min(100, Math.max(1, parseInt(limit) || 20));
-
-        const result = await directMessageRepository.getConversation(
-            user_id,
+        const result = await directMessageService.getConversation(
+            request.user.id,
             other_user_id,
-            page_num,
-            limit_num
+            page,
+            limit
         );
 
         return response.status(200).json({
@@ -52,28 +34,10 @@ class DirectMessageController {
     }
 
     async send(request, response) {
-        const user_id = request.user.id;
         const { user_id: receiver_id } = request.params;
         const { contenido } = request.body;
 
-        if (!mongoose.Types.ObjectId.isValid(receiver_id)) {
-            throw new ServerError("Usuario no encontrado", 404);
-        }
-
-        if (receiver_id === user_id) {
-            throw new ServerError("No puedes enviarte un mensaje a ti mismo", 400);
-        }
-
-        const receiver = await userRepository.getById(receiver_id);
-        if (!receiver || !receiver.activo) {
-            throw new ServerError("Usuario no encontrado", 404);
-        }
-
-        const new_message = await directMessageRepository.create(
-            contenido,
-            user_id,
-            receiver_id
-        );
+        const new_message = await directMessageService.send(request.user.id, receiver_id, contenido);
 
         return response.status(201).json({
             ok: true,
@@ -86,25 +50,10 @@ class DirectMessageController {
     }
 
     async updateById(request, response) {
-        const user_id = request.user.id;
         const { message_id } = request.params;
         const { contenido } = request.body;
 
-        if (!mongoose.Types.ObjectId.isValid(message_id)) {
-            throw new ServerError("Mensaje no encontrado", 404);
-        }
-
-        const message = await directMessageRepository.getById(message_id);
-        if (!message || !message.estado) {
-            throw new ServerError("Mensaje no encontrado", 404);
-        }
-
-        //solo el autor puede editar su mensaje
-        if (message.fk_sender_id._id.toString() !== user_id) {
-            throw new ServerError("No tienes permiso para editar este mensaje", 403);
-        }
-
-        const updated_message = await directMessageRepository.updateById(message_id, { contenido });
+        const updated_message = await directMessageService.updateById(request.user.id, message_id, contenido);
 
         return response.status(200).json({
             ok: true,
@@ -117,24 +66,9 @@ class DirectMessageController {
     }
 
     async deleteById(request, response) {
-        const user_id = request.user.id;
         const { message_id } = request.params;
 
-        if (!mongoose.Types.ObjectId.isValid(message_id)) {
-            throw new ServerError("Mensaje no encontrado", 404);
-        }
-
-        const message = await directMessageRepository.getById(message_id);
-        if (!message || !message.estado) {
-            throw new ServerError("Mensaje no encontrado", 404);
-        }
-
-        //solo el autor puede borrar su mensaje
-        if (message.fk_sender_id._id.toString() !== user_id) {
-            throw new ServerError("No tienes permiso para eliminar este mensaje", 403);
-        }
-
-        const deleted_message = await directMessageRepository.softDeleteById(message_id);
+        const deleted_message = await directMessageService.deleteById(request.user.id, message_id);
 
         return response.status(200).json({
             ok: true,

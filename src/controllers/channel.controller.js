@@ -1,16 +1,11 @@
-import ServerError from "../helpers/serverError.helper.js";
-import channelRepository from "../repositories/channel.repository.js";
+import channelService from "../services/channel.service.js";
 
 class ChannelController {
     async create(request, response) {
         const { nombre, descripcion } = request.body;
         const { workspace_id } = request.params;
 
-        const new_channel = await channelRepository.create(
-            nombre,
-            descripcion || '',
-            workspace_id
-        );
+        const new_channel = await channelService.create(workspace_id, nombre, descripcion);
 
         return response.status(201).json({
             ok: true,
@@ -23,9 +18,7 @@ class ChannelController {
     }
 
     async getAllByWorkspace(request, response) {
-        const { workspace_id } = request.params;
-
-        const channels = await channelRepository.getByWorkspaceId(workspace_id);
+        const channels = await channelService.getAllByWorkspace(request.params.workspace_id);
 
         return response.status(200).json({
             ok: true,
@@ -40,10 +33,7 @@ class ChannelController {
     async getById(request, response) {
         const { workspace_id, channel_id } = request.params;
 
-        const channel = await channelRepository.getById(channel_id);
-        if (!channel || !channel.estado || channel.fk_workspace_id.toString() !== workspace_id) {
-            throw new ServerError("Canal no encontrado en este espacio de trabajo", 404);
-        }
+        const channel = await channelService.getById(workspace_id, channel_id);
 
         return response.status(200).json({
             ok: true,
@@ -57,23 +47,8 @@ class ChannelController {
 
     async updateById(request, response) {
         const { workspace_id, channel_id } = request.params;
-        const { nombre, descripcion } = request.body;
 
-        const channel = await channelRepository.getById(channel_id);
-        if (!channel || !channel.estado || channel.fk_workspace_id.toString() !== workspace_id) {
-            throw new ServerError("Canal no encontrado en este espacio de trabajo", 404);
-        }
-
-        const update_data = {};
-
-        if (nombre !== undefined) {
-            update_data.nombre = nombre;
-        }
-        if (descripcion !== undefined) {
-            update_data.descripcion = descripcion;
-        }
-
-        const updated_channel = await channelRepository.updateById(channel_id, update_data);
+        const updated_channel = await channelService.updateById(workspace_id, channel_id, request.body);
 
         return response.status(200).json({
             ok: true,
@@ -88,12 +63,7 @@ class ChannelController {
     async deleteById(request, response) {
         const { workspace_id, channel_id } = request.params;
 
-        const channel = await channelRepository.getById(channel_id);
-        if (!channel || !channel.estado || channel.fk_workspace_id.toString() !== workspace_id) {
-            throw new ServerError("Canal no encontrado en este espacio de trabajo", 404);
-        }
-
-        const deleted_channel = await channelRepository.softDeleteById(channel_id);
+        const deleted_channel = await channelService.deleteById(workspace_id, channel_id);
 
         return response.status(200).json({
             ok: true,
