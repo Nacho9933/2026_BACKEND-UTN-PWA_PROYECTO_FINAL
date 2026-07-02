@@ -15,7 +15,9 @@ if (ENVIRONMENT.MODE === 'development') {
     dns.setServers(['8.8.8.8', '8.8.4.4']);
 }
 
-connectMongoDB();
+//Calentamos la conexión en el arranque, pero sin romper si falla:
+//el middleware de abajo la reintenta en cada request.
+connectMongoDB().catch(() => {});
 
 const app = express();
 const PORT = ENVIRONMENT.PORT;
@@ -27,6 +29,17 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+//Nos aseguramos de tener una conexión viva a MongoDB antes de tocar cualquier
+//ruta: evita el "buffering timed out" cuando la request llega antes de conectar.
+app.use(async (req, res, next) => {
+    try {
+        await connectMongoDB();
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
 
 app.use('/api/auth', authRouter);
 app.use('/api/workspace', workspaceRouter);
