@@ -27,3 +27,9 @@ export const resetPasswordConfirmSchema = z.object({
         .string({ message: "La contraseña es obligatoria" })
         .min(6, "Contraseña invalida"),
 });
+
+export const refreshSchema = z.object({
+    refresh_token: z
+        .string({ message: "El refresh token es obligatorio" })
+        .min(1, "El refresh token es obligatorio"),
+});

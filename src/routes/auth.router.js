@@ -5,7 +5,8 @@ import {
     registerSchema,
     loginSchema,
     resetPasswordRequestSchema,
-    resetPasswordConfirmSchema
+    resetPasswordConfirmSchema,
+    refreshSchema
 } from '../schemas/auth.schema.js'
 
 
@@ -26,6 +27,12 @@ authRouter.post(
     '/login',
     validate(loginSchema),
     authController.login
+)
+
+authRouter.post(
+    '/refresh',
+    validate(refreshSchema),
+    authController.refresh
 )
 
 authRouter.post(

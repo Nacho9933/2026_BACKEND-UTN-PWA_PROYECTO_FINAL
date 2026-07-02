@@ -6,6 +6,23 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 class AuthService {
+    //el access token es corto: viaja en cada request y expira rápido
+    #generateAccessToken(user) {
+        const profile_info = {
+            nombre: user.nombre,
+            email: user.email,
+            id: user._id,
+            fecha_creacion: user.fecha_creacion
+        };
+
+        return jwt.sign(profile_info, ENVIRONMENT.JWT_SECRET, { expiresIn: '15m' });
+    }
+
+    //el refresh solo lleva el id: al renovar buscamos el usuario fresco en la DB
+    #generateRefreshToken(user) {
+        return jwt.sign({ id: user._id }, ENVIRONMENT.JWT_REFRESH_SECRET, { expiresIn: '30d' });
+    }
+
     async register(name, email, password) {
         const existingUser = await userRepository.getByEmail(email);
         if (existingUser) {
@@ -54,14 +71,26 @@ class AuthService {
             throw new ServerError("Credenciales invalidas", 401);
         }
 
-        const profile_info = {
-            nombre: user_found.nombre,
-            email: user_found.email,
-            id: user_found._id,
-            fecha_creacion: user_found.fecha_creacion
+        return {
+            access_token: this.#generateAccessToken(user_found),
+            refresh_token: this.#generateRefreshToken(user_found)
         };
+    }
 
-        return jwt.sign(profile_info, ENVIRONMENT.JWT_SECRET, { expiresIn: '7d' });
+    async refreshAccessToken(refresh_token) {
+        if (!refresh_token) {
+            throw new ServerError("Falta el refresh token", 401);
+        }
+
+        //si el refresh está vencido o es inválido, jwt.verify lanza y el error middleware responde 401
+        const { id } = jwt.verify(refresh_token, ENVIRONMENT.JWT_REFRESH_SECRET);
+
+        const user = await userRepository.getById(id);
+        if (!user || !user.activo) {
+            throw new ServerError("Usuario no encontrado", 404);
+        }
+
+        return this.#generateAccessToken(user);
     }
 
     async resetPasswordRequest(email) {

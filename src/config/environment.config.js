@@ -13,7 +13,9 @@ const ENVIRONMENT = {
     SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
     URL_BACKEND: process.env.URL_BACKEND,
     URL_FRONTEND: process.env.URL_FRONTEND,
-    JWT_SECRET: process.env.JWT_SECRET
+    JWT_SECRET: process.env.JWT_SECRET,
+    //secreto aparte para los refresh tokens: así un access token no sirve como refresh ni viceversa
+    JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET
 }
 
 export default ENVIRONMENT

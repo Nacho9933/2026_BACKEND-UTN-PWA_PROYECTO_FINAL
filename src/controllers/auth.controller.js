@@ -35,12 +35,28 @@ class AuthController {
     async login(request, response) {
         const { email, password } = request.body;
 
-        const access_token = await authService.login(email, password);
+        const { access_token, refresh_token } = await authService.login(email, password);
 
         return response.status(200).json({
             ok: true,
             status: 200,
             message: 'Usuario autentificado exitosamente',
+            data: {
+                access_token,
+                refresh_token
+            }
+        });
+    }
+
+    async refresh(request, response) {
+        const { refresh_token } = request.body;
+
+        const access_token = await authService.refreshAccessToken(refresh_token);
+
+        return response.status(200).json({
+            ok: true,
+            status: 200,
+            message: 'Token renovado exitosamente',
             data: {
                 access_token
             }
