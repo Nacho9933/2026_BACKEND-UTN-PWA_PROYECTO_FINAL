@@ -1,13 +1,32 @@
+import sgMail from "@sendgrid/mail";
 import ENVIRONMENT from "../config/environment.config.js";
-import mailer_transport from "../config/mailer.config.js";
-import ServerError from "../helpers/serverError.helper.js";
 
+//SendGrid manda por HTTP (puerto 443), a diferencia del SMTP de Gmail que se cuelga en Vercel serverless
+sgMail.setApiKey(ENVIRONMENT.SENDGRID_API_KEY);
 
 class MailService {
-    async sendVerificationEmail (email, verification_token){
-        await mailer_transport.sendMail({
+    //envía sin romper el flujo: si el mail falla lo loguea y sigue (register/reset/invitación no se rompen)
+    async #send({ to, subject, html }) {
+        try {
+            await sgMail.send({
+                to,
+                //el remitente DEBE ser el email verificado en SendGrid (Single Sender)
+                from: { email: ENVIRONMENT.SENDGRID_FROM_EMAIL, name: "Slack UTN" },
+                subject,
+                html
+            });
+            console.log("Correo enviado a:", to);
+            return true;
+        } catch (error) {
+            //SendGrid devuelve el detalle real del error en error.response.body
+            console.error("No se pudo enviar el correo a", to, "-", error.response?.body?.errors || error.message);
+            return false;
+        }
+    }
+
+    async sendVerificationEmail(email, verification_token) {
+        return await this.#send({
             to: email,
-            from: ENVIRONMENT.GMAIL_USERNAME,
             subject: "Verifica tu mail",
             html: `
                     <h1>Bienvenido a SLACK</h1>
@@ -16,11 +35,10 @@ class MailService {
         });
     }
 
-    async sendResetPasswordEmail (email, reset_link){
-        await mailer_transport.sendMail({
-            from: 'Tu App <no-reply@tuapp.com>',
+    async sendResetPasswordEmail(email, reset_link) {
+        return await this.#send({
             to: email,
-            subject: 'Restablece tu contraseña',
+            subject: "Restablece tu contraseña",
             html: `
                     <h1>Restablecimiento de Contraseña</h1>
                     <p>Has solicitado restablecer tu contraseña. Haz clic en el enlace de abajo para continuar:</p>
@@ -30,13 +48,11 @@ class MailService {
         });
     }
 
-    async sendInvitationMemberEmail (invited_email, accept_url, reject_url, role){
-        try {
-            await mailer_transport.sendMail({
-                from: `"Slack UTN" <${ENVIRONMENT.GMAIL_USERNAME}>`,
-                to: invited_email,
-                subject: 'Invitación a Espacio de Trabajo',
-                html: `
+    async sendInvitationMemberEmail(invited_email, accept_url, reject_url, role) {
+        return await this.#send({
+            to: invited_email,
+            subject: "Invitación a Espacio de Trabajo",
+            html: `
                     <div style="font-family: Arial; padding: 20px; text-align: center;">
                         <h2>¡Has sido invitado!</h2>
                         <p>Alguien te ha invitado a colaborar en un espacio de trabajo con el rol de <b>${role}</b>.</p>
@@ -47,12 +63,7 @@ class MailService {
                         <p style="font-size: 12px; color: gray;">Si no conoces este espacio, ignora este mensaje o presiona rechazar.</p>
                     </div>
                 `
-            });
-            console.log("¡Correo de invitación enviado a:", invited_email);
-    } catch (error) {
-        console.error("Error al enviar la invitación:", error);
-        throw error
-    }
+        });
     }
 }
 
